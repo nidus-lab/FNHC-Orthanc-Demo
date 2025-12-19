@@ -1,0 +1,207 @@
+services:
+  orthanc:
+    image: orthancteam/orthanc:25.6.4
+    restart: unless-stopped
+    ports:
+      - "5002:8042"
+    networks:
+      minichris-local:
+      wg:
+        ipv4_address: 10.42.42.3
+    profiles:
+      - orthanc
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/orthanc/scripts
+      - orthanc_dicom_data:/var/lib/orthanc/db/
+      - orthanc_dicom_data_named:/var/lib/orthanc/advanced-storage
+    environment:
+      STONE_WEB_VIEWER_PLUGIN_ENABLED: "true"
+      VERBOSE_ENABLED: "true"
+      VERBOSE_STARTUP: "true"
+      HOUSEKEEPER_PLUGIN_ENABLED: "false"
+      ORTHANC__DICOM_MODALITIES: |
+          {
+            "FNHC": {
+                "AET": "FNHC",
+                "Host": "10.42.42.42",
+                "Manufacturer": "Generic",
+                "Port": 4242,
+                "AllowEcho": true,
+                "AllowStore": true
+            }
+          }
+
+      # https://orthanc.uclouvain.be/book/plugins/advanced-storage.html#id10:~:text=When%20the%20indexer%20mode%20is%20enabled
+      # Might be worth exploring
+      ORTHANC_JSON: |
+        {
+          "Name": "NIDUS Orthanc",
+
+          "MaximumStorageSize": 0,
+          "MaximumPatientCount": 0,
+
+          "AdvancedStorage": {
+            "Enable": true,
+            "NamingScheme": "{PatientID}/{StudyInstanceUID}/{UUID}{.ext}",
+            "MultipleStorages": {
+              "Storages": {
+                "ext1": "/var/lib/orthanc/advanced-storage"
+              },
+              "CurrentWriteStorage": "ext1"
+            }
+          },
+
+          "OrthancExplorer2": {
+            "Theme": "dark",
+            "IsDefaultUI": true,
+            "UiOptions": {
+              "EnableDicomModalities": false,
+              "EnableSendTo": true
+            },
+            "Tokens" : {
+              "InstantLinksValidity": 3600,
+              "ShareType": "ohif-viewer-publication"
+            },
+            "Keycloak" : {
+              "Enable": true,
+              "Url": "https://keycloak.abfnhc.com/",
+              "Realm": "orthanc",
+              "ClientId": "orthanc"
+            }
+          },
+
+          "AuthenticationEnabled": false,
+
+          "Authorization": {
+            "WebServiceRootUrl": "https://orthanc-auth.abfnhc.com/",
+            "WebServiceUsername": "share-user",
+            "WebServicePassword": "PLEASECHANGEME-1",
+            // to use OHIF-plugin:  make sure to include "ohif" in the list
+            "StandardConfigurations" : [
+              "stone-webviewer",
+              "orthanc-explorer-2"
+            ],
+            "TokenHttpHeaders" : [ "api-key" ],
+            "CheckedLevel": "studies"
+          },
+
+          "DicomWeb": {
+            "Enable": true,
+            "PublicRoot": "/orthanc/dicom-web/"
+          },
+
+          "LuaScripts": [
+              "/orthanc/scripts/labels.lua",
+              "/orthanc/scripts/access-control.lua"
+          ],
+
+          "DicomCheckModalityHost": false,
+          "DicomCheckCalledAet": true,
+          "DicomAet": "NIDUS",
+          "DicomAlwaysAllowEcho": false,
+          "DicomAlwaysAllowStore": false,
+          "DicomAlwaysAllowFind": false,
+          "DicomAlwaysAllowMove": false,
+          "DicomAlwaysAllowGet": false,
+          "DicomAlwaysAllowDelete": false,
+
+          "PostgreSQL": {
+            "Enable": true,
+            "Host": "orthanc-db",
+            "Port": 5432,
+            "Database": "orthanc",
+            "Username": "orthanc",
+            "Password": "orthanc",
+            "EnableSsl": false,
+            "EnableIndex": true
+          },
+
+          "Dictionary" : {
+            "0011,10" : [ "LT", "MyPrivateComments", 1, 1, "MYAPP 1.0" ]
+          }
+        }
+
+  orthanc-auth-service:
+    image: orthancteam/orthanc-auth-service:2025.05.27
+    networks:
+      minichris-local:
+    ports:
+      - "5003:8000"
+    volumes:
+      - ./permissions.jsonc:/orthanc_auth_service/permissions.json
+    profiles:
+      - orthanc
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    restart: unless-stopped
+    environment:
+      # https://github.com/orthanc-team/orthanc-auth-service/tree/main/minimal-setup/keycloak#enabling-api-keys
+      SECRET_KEY: "CHANGEME"
+      ENABLE_KEYCLOAK: "true"
+      ENABLE_KEYCLOAK_API_KEYS: "true"
+      KEYCLOAK_CLIENT_SECRET: "GET_ME_FROM_KEYCLOAK_LOGS"
+      PUBLIC_ORTHANC_ROOT: "https://orthanc.abfnhc.com/"
+      PUBLIC_LANDING_ROOT: "https://orthanc.abfnhc.com/ui/app/token-landing.html"
+      USERS: |
+        {
+          "share-user": "PLEASECHANGEME-1"
+        }
+
+  keycloak:
+    image: orthancteam/orthanc-keycloak:25.5.0
+    depends_on:
+      orthanc-db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "5004:8080"
+    networks:
+      minichris-local:
+    profiles:
+      - orthanc
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "change-me"
+      KC_DB: "postgres"
+      KC_DB_URL: "jdbc:postgresql://orthanc-db:5432/keycloak"
+      KC_DB_USERNAME: "orthanc"
+      KC_DB_PASSWORD: "orthanc"
+      KC_HOSTNAME: "https://keycloak.abfnhc.com/"
+      KC_HEALTH_ENABLED: "true"
+    healthcheck:
+      test: ['CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:9000/health/live']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  orthanc-db:
+    image: postgres:14
+    restart: unless-stopped
+    command: -c 'max_connections=200'
+    networks:
+      minichris-local:
+    profiles:
+      - orthanc
+    environment:
+      POSTGRES_USER: "orthanc"
+      POSTGRES_PASSWORD: "orthanc"
+      POSTGRES_MULTIPLE_DATABASES: orthanc, keycloak
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orthanc"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./multiple-databases.sh:/docker-entrypoint-initdb.d/multiple-databases.sh
+      - orthanc_pgdata:/var/lib/postgresql/data
+
+volumes:
+  orthanc_pgdata:
+  orthanc_dicom_data:
+    external: true
+  orthanc_dicom_data_named:
+    external: true

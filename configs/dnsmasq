@@ -1,0 +1,15 @@
+# Only listen on the interface facing the VPN network
+interface=eth0 # Inside the dnsmasq container, 'eth0' is its primary interface
+               # that connects to the 'wg' network.
+
+address=/pacs-direct.abfnhc.com/10.42.42.3
+
+# Forward other DNS queries to external DNS servers (e.g., Google's)
+server=8.8.8.8
+server=8.8.4.4
+
+# Log DNS queries for debugging (optional)
+# log-queries
+
+# Don't use /etc/resolv.conf of the container host
+no-resolv

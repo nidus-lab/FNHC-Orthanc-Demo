@@ -1,0 +1,32 @@
+{
+	# Disable the admin interface (optional)
+	admin off
+}
+
+orthanc.abfnhc.com {
+	reverse_proxy http://localhost:5002
+}
+
+orthanc-auth.abfnhc.com {
+	reverse_proxy http://localhost:5003
+}
+
+keycloak.abfnhc.com {
+	reverse_proxy http://localhost:5004
+}
+
+vpn.abfnhc.com {
+	reverse_proxy http://localhost:5017
+}
+
+# example-vpn-only-website.abfnhc.com {
+# 	@vpn remote_ip 10.42.42.0/24
+
+# 	handle @vpn {
+# 		reverse_proxy http://10.42.42.44:8000
+# 	}
+
+# 	handle {
+# 		respond "Forbidden" 403
+# 	}
+# }
