@@ -98,7 +98,7 @@ services:
               "/orthanc/scripts/access-control.lua"
           ],
 
-          "DicomCheckModalityHost": false,
+          "DicomCheckModalityHost": true,
           "DicomCheckCalledAet": true,
           "DicomAet": "NIDUS",
           "DicomAlwaysAllowEcho": false,
