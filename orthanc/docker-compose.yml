@@ -67,7 +67,7 @@ services:
             },
             "Keycloak" : {
               "Enable": true,
-              "Url": "https://keycloak.abfnhc.com/",
+              "Url": "https://keycloak.abfnhcsystems.ca/",
               "Realm": "orthanc",
               "ClientId": "orthanc"
             }
@@ -76,7 +76,7 @@ services:
           "AuthenticationEnabled": false,
 
           "Authorization": {
-            "WebServiceRootUrl": "https://orthanc-auth.abfnhc.com/",
+            "WebServiceRootUrl": "https://orthanc-auth.abfnhcsystems.ca/",
             "WebServiceUsername": "share-user",
             "WebServicePassword": "${ORTHANC_AUTH_SERVICE_PASSWORD}",
             // to use OHIF-plugin:  make sure to include "ohif" in the list
@@ -142,40 +142,40 @@ services:
       ENABLE_KEYCLOAK: "true"
       ENABLE_KEYCLOAK_API_KEYS: "true"
       KEYCLOAK_CLIENT_SECRET: ${ORTHANC_AUTH_SERVICE_KEYCLOAK_CLIENT_SECRET}
-      PUBLIC_ORTHANC_ROOT: "https://orthanc.abfnhc.com/"
-      PUBLIC_LANDING_ROOT: "https://orthanc.abfnhc.com/ui/app/token-landing.html"
+      PUBLIC_ORTHANC_ROOT: "https://orthanc.abfnhcsystems.ca/"
+      PUBLIC_LANDING_ROOT: "https://orthanc.abfnhcsystems.ca/ui/app/token-landing.html"
       USERS: |
         {
           "share-user": "${ORTHANC_AUTH_SERVICE_PASSWORD}"
         }
 
-  keycloak-github-plugin-builder:
-    build:
-      context: ./keycloak-github-org-guard
-      dockerfile: Dockerfile
-    volumes:
-      - keycloak_plugins:/out
-    profiles:
-      - orthanc
+  # keycloak-github-plugin-builder:
+  #   build:
+  #     context: ./keycloak-github-org-guard
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - keycloak_plugins:/out
+  #   profiles:
+  #     - orthanc
 
-  keycloak-role-plugin-builder:
-    build:
-      context: ./keycloak-role-auto-assigner
-      dockerfile: Dockerfile
-    volumes:
-      - keycloak_plugins:/out
-    profiles:
-      - orthanc
+  # keycloak-role-plugin-builder:
+  #   build:
+  #     context: ./keycloak-role-auto-assigner
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - keycloak_plugins:/out
+  #   profiles:
+  #     - orthanc
 
   keycloak:
     image: orthancteam/orthanc-keycloak:25.5.0
     depends_on:
       orthanc-db:
         condition: service_healthy
-      keycloak-github-plugin-builder:
-        condition: service_completed_successfully
-      keycloak-role-plugin-builder:
-        condition: service_completed_successfully
+      # keycloak-github-plugin-builder:
+      #   condition: service_completed_successfully
+      # keycloak-role-plugin-builder:
+      #   condition: service_completed_successfully
     restart: unless-stopped
     ports:
       - "5004:8080"
@@ -183,11 +183,11 @@ services:
       minichris-local:
     profiles:
       - orthanc
-    volumes:
-      - keycloak_plugins:/opt/keycloak/providers
-    command: >
-      sh -c "/opt/keycloak/bin/kc.sh build &&
-             /opt/keycloak/bin/kc.sh start"
+    # volumes:
+    #   - keycloak_plugins:/opt/keycloak/providers
+    # command: >
+    #   sh -c "/opt/keycloak/bin/kc.sh build &&
+    #          /opt/keycloak/bin/kc.sh start"
     env_file:
       - ../.env
     environment:
@@ -197,7 +197,7 @@ services:
       KC_DB_URL: "jdbc:postgresql://orthanc-db:5432/keycloak"
       KC_DB_USERNAME: "orthanc"
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
-      KC_HOSTNAME: "https://keycloak.abfnhc.com/"
+      KC_HOSTNAME: "https://keycloak.abfnhcsystems.ca/"
       KC_HEALTH_ENABLED: "true"
     healthcheck:
       test: ['CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:9000/health/live']
@@ -261,7 +261,7 @@ services:
 
 volumes:
   orthanc_pgdata:
-  keycloak_plugins:
+  # keycloak_plugins:
   orthanc_dicom_data:
     external: true
   orthanc_dicom_data_named:

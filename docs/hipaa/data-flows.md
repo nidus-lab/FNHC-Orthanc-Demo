@@ -11,9 +11,9 @@ graph TD
   end
 
   subgraph Caddy["Caddy Reverse Proxy"]
-    RP_VPN["vpn.abfnhc.com (wg-easy)"]
-    RP_KC["keycloak.abfnhc.com"]
-    RP_UI["orthanc.abfnhc.com"]
+    RP_VPN["vpn.abfnhcsystems.ca (wg-easy)"]
+    RP_KC["keycloak.abfnhcsystems.ca"]
+    RP_UI["orthanc.abfnhcsystems.ca"]
   end
 
   subgraph WG["WireGuard Network (10.42.42.0/24)"]
@@ -43,7 +43,7 @@ graph TD
 ## Narrative
 - **Admin Access**: Admins connect to the WireGuard VPN (wg-easy) using 2FA. Once connected, they manage VPN profiles and configure user accounts/roles within Keycloak.
 - **Basic User - DICOMweb**: Clinical users or automated systems send DICOM data via the DICOMweb protocol. This requires an active WireGuard VPN connection to ensure PHI is encrypted in transit and the Orthanc endpoints are reachable.
-- **Basic User - Web UI**: Users access the Orthanc UI (Explorer 2 / OHIF) via HTTPS at `orthanc.abfnhc.com`. Authentication is delegated to Keycloak, which requires either a 3rd-party identity provider or a username/password with 2FA. Orthanc serves as the backend for this endpoint.
+- **Basic User - Web UI**: Users access the Orthanc UI (Explorer 2 / OHIF) via HTTPS at `orthanc.abfnhcsystems.ca`. Authentication is delegated to Keycloak, which requires either a 3rd-party identity provider or a username/password with 2FA. Orthanc serves as the backend for this endpoint.
 - **Internal DNS**: `dnsmasq` maps names within the WG network, simplifying PACS → Orthanc routing.
 
 ## Data Retention Locations

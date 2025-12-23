@@ -14,7 +14,7 @@ This folder contains HIPAA-aligned documentation for the PACS infrastructure, fo
 - [Future Work](future-work.md) — Prioritized improvements (incl. MFA for VPN, ChRIS, Orthanc)
 
 ## Executive Summary
-- Orthanc is published at `orthanc.abfnhc.com` via Caddy and integrates with an authorization service and Keycloak. DICOM ingress is intended to occur over the WireGuard VPN (`wg-easy`) and internal DNS (`dnsmasq`).
+- Orthanc is published at `orthanc.abfnhcsystems.ca` via Caddy and integrates with an authorization service and Keycloak. DICOM ingress is intended to occur over the WireGuard VPN (`wg-easy`) and internal DNS (`dnsmasq`).
 - Caddy provides TLS termination and reverse proxy for public services.
 - WireGuard (`wg-easy`) provides private network access; `dnsmasq` offers split-horizon DNS for PACS/Orthanc.
 

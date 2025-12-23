@@ -3,7 +3,7 @@
 	admin off
 }
 
-orthanc.abfnhc.com {
+orthanc.abfnhcsystems.ca {
 	replace {
 		"</body>" "<script>(function(){const cb=function(){const logo=document.querySelector('img.orthanc-logo');if(logo&&logo.src!=='https://www.nidusai.ca/app/graphics/logo-lab.png'){logo.src='https://www.nidusai.ca/app/graphics/logo-lab.png';}const menus=document.querySelectorAll('ul[aria-labelledby=\"sendToDropdownMenuId\"]');menus.forEach(menu=>{const items=menu.querySelectorAll('.dropdown-item');items.forEach(item=>{const text=item.textContent.trim().replace(/\\s*\\u25be$/,'');if(text!=='EXO'&&text!=='Send to DICOM node'){item.remove();}});});};const observer=new MutationObserver(cb);observer.observe(document.body,{childList:true,subtree:true});cb();})();</script></body>"
 	}
@@ -12,11 +12,11 @@ orthanc.abfnhc.com {
 	}
 }
 
-orthanc-auth.abfnhc.com {
+orthanc-auth.abfnhcsystems.ca {
 	reverse_proxy http://localhost:5003
 }
 
-keycloak.abfnhc.com {
+keycloak.abfnhcsystems.ca {
 	handle_path /admin/* {
 		reverse_proxy http://localhost:5004
 	}
@@ -31,15 +31,15 @@ keycloak.abfnhc.com {
 	}
 }
 
-vpn.abfnhc.com {
+vpn.abfnhcsystems.ca {
 	reverse_proxy http://localhost:5017
 }
 
-health.abfnhc.com {
+health.abfnhcsystems.ca {
 	reverse_proxy http://localhost:5006
 }
 
-# example-vpn-only-website.abfnhc.com {
+# example-vpn-only-website.abfnhcsystems.ca {
 # 	@vpn remote_ip 10.42.42.0/24
 
 # 	handle @vpn {

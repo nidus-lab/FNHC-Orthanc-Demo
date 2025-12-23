@@ -24,6 +24,6 @@ This section maps observed controls in this repo to HIPAA safeguards. It is not 
 - Reverse Proxy Hardening: Caddy with admin interface disabled
 
 ## Evidence (from this repo)
-- `Caddyfile` exposes: `orthanc.abfnhc.com` → 5002, `vpn.abfnhc.com` → 5017
+- `Caddyfile` exposes: `orthanc.abfnhcsystems.ca` → 5002, `vpn.abfnhcsystems.ca` → 5017
 - `orthanc/docker-compose.yml` configures `OrthancExplorer2` + Keycloak and external `orthanc-auth-service`
 - `docker-compose.yml` defines `wg-easy` with static addressing and DNS via `dnsmasq`
