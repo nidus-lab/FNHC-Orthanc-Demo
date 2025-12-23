@@ -217,7 +217,7 @@ services:
       - ../.env
     environment:
       POSTGRES_USER: "orthanc"
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${ORTHANC_DB_PASSWORD}
       POSTGRES_MULTIPLE_DATABASES: orthanc, keycloak
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U orthanc"]
@@ -262,7 +262,20 @@ services:
 volumes:
   orthanc_pgdata:
   # keycloak_plugins:
+
+  # sudo docker volume create \
+  # --name orthanc_dicom_data \
+  # --driver local \
+  # --opt type=none \
+  # --opt o=bind \
+  # --opt device=/storage/orthanc_dicom_data
   orthanc_dicom_data:
     external: true
+  # sudo docker volume create \
+  # --name orthanc_dicom_data_named \
+  # --driver local \
+  # --opt type=none \
+  # --opt o=bind \
+  # --opt device=/storage/orthanc_dicom_data_named
   orthanc_dicom_data_named:
     external: true
