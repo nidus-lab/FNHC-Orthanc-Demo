@@ -14,7 +14,7 @@
 - Imaging Archive: `Orthanc` (`orthanc/docker-compose.yml`)
   - Uses Postgres (`orthanc-db`) for metadata/storage (compose snippet indicates Postgres integration)
   - Integrates Orthanc Explorer 2 + OHIF with Keycloak and `orthanc-auth-service`
-  - DICOM ingress intended via VPN; DICOM TLS disabled in default README snippet
+  - DICOM ingress intended via VPN only due to lack of widespread DICOM TLS support
 - AuthN/AuthZ: `Keycloak` and `orthanc-auth-service`
   - Keycloak realm `orthanc`, client `orthanc`
   - Orthanc Auth Service provides policy enforcement and tokenized shares
@@ -35,3 +35,16 @@
 - PHI: DICOM images and metadata in Orthanc
 - Confidential: Admin credentials, service tokens, VPN keys
 - Public: Static site content and documentation
+
+## User Roles and Access
+### Admin User
+- **Responsibilities**: System configuration, user management, and VPN administration.
+- **Access Control**:
+  - **WireGuard (VPN)**: Requires 2FA to establish a secure connection.
+  - **Management**: Authorized to create and manage VPN accounts (via wg-easy) and application accounts in Keycloak.
+
+### Basic User
+- **Responsibilities**: Clinical data access and DICOM transmission.
+- **Access Methods**:
+  - **DICOMweb Protocol**: Used for sending/receiving DICOM data. This requires an active VPN connection to reach the Orthanc DICOMweb endpoints securely.
+  - **Orthanc UI (Web)**: Accessed via browser for viewing studies. Authentication is handled by Keycloak, requiring either a third-party identity provider (e.g., GitHub, Google) or a 2FA-enabled username/password.

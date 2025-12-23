@@ -8,7 +8,6 @@ This section maps observed controls in this repo to HIPAA safeguards. It is not 
   - Keycloak SSO for Orthanc Explorer 2 (configured via `orthanc/docker-compose.yml`), client `orthanc`, realm `orthanc`
   - Orthanc Authorization Service enforces fine-grained access and token sharing
   - WireGuard (`wg-easy`) restricts network access to internal services
-  - Gaps: MFA not enforced yet; VPN UI lacks MFA
 - Audit Controls
   - Caddy can log access; Orthanc produce logs. Centralized log aggregation is not configured in this repo.
 - Integrity
@@ -18,8 +17,7 @@ This section maps observed controls in this repo to HIPAA safeguards. It is not 
   - Keycloak provides user authentication for Orthanc UI
 - Transmission Security
   - HTTPS via Caddy for public endpoints
-  - DICOM ingress intended over WireGuard VPN; README shows DICOM TLS disabled by default
-  - Recommendation: Enable DICOM TLS or mandate VPN-only ingress with ACLs and MFA
+  - DICOM ingress intended over WireGuard VPN
 
 ## Additional Controls
 - Network Segmentation: WireGuard `wg` network and `dnsmasq` split-horizon DNS

@@ -4,7 +4,12 @@
 }
 
 orthanc.abfnhc.com {
-	reverse_proxy http://localhost:5002
+	replace {
+		"</body>" "<script>(function(){const cb=function(){const logo=document.querySelector('img.orthanc-logo');if(logo&&logo.src!=='https://www.nidusai.ca/app/graphics/logo-lab.png'){logo.src='https://www.nidusai.ca/app/graphics/logo-lab.png';}const menus=document.querySelectorAll('ul[aria-labelledby=\"sendToDropdownMenuId\"]');menus.forEach(menu=>{const items=menu.querySelectorAll('.dropdown-item');items.forEach(item=>{const text=item.textContent.trim().replace(/\\s*\\u25be$/,'');if(text!=='EXO'&&text!=='Send to DICOM node'){item.remove();}});});};const observer=new MutationObserver(cb);observer.observe(document.body,{childList:true,subtree:true});cb();})();</script></body>"
+	}
+	reverse_proxy http://localhost:5002 {
+		header_up -Accept-Encoding
+	}
 }
 
 orthanc-auth.abfnhc.com {
@@ -12,11 +17,26 @@ orthanc-auth.abfnhc.com {
 }
 
 keycloak.abfnhc.com {
-	reverse_proxy http://localhost:5004
+	handle_path /admin/* {
+		reverse_proxy http://localhost:5004
+	}
+
+	handle {
+		replace {
+			"</body>" "<script>(function(){const cb=function(){document.title=document.title.replace(/Orthanc/g,'NIDUS');const header=document.getElementById('kc-header-wrapper');if(header){if(header.textContent.trim()==='Orthanc'){header.textContent='NIDUS';}header.style.backgroundImage='url(\"https://avatars.githubusercontent.com/u/143404621?s=400&u=86013a864c1b65ab27076e5819a541c74ccd1ab8&v=4.png\")';header.style.backgroundSize='contain';header.style.backgroundRepeat='no-repeat';header.style.backgroundPosition='center';}};const observer=new MutationObserver(cb);observer.observe(document.body,{childList:true,subtree:true});cb();})();</script></body>"
+		}
+		reverse_proxy http://localhost:5004 {
+			header_up -Accept-Encoding
+		}
+	}
 }
 
 vpn.abfnhc.com {
 	reverse_proxy http://localhost:5017
+}
+
+health.abfnhc.com {
+	reverse_proxy http://localhost:5006
 }
 
 # example-vpn-only-website.abfnhc.com {

@@ -1,7 +1,7 @@
-# NIDUS Infrastructure HIPAA Documentation
+# PACS Infrastructure HIPAA Documentation
 [Home](README.md) | [Overview](system-overview.md) | [Data Flows](data-flows.md) | [Security Controls](security-controls.md) | [Risk Register](risk-register.md) | [Future Work](future-work.md)
 
-This folder contains HIPAA-aligned documentation for the NIDUS infrastructure, focused on protecting PHI handled by Orthanc and the ChRIS platform.
+This folder contains HIPAA-aligned documentation for the PACS infrastructure, focused on protecting PHI handled by Orthanc and the ChRIS platform.
 
 - Audience: engineering, security, compliance
 - Scope: assets and configs in this repo (`docker-compose.yml`, `Caddyfile`, `orthanc/`,  `configs/`)

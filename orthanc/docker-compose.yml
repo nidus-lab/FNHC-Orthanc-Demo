@@ -38,7 +38,7 @@ services:
       # Might be worth exploring
       ORTHANC_JSON: |
         {
-          "Name": "NIDUS Orthanc",
+          "Name": "FNHC PACS Servers",
 
           "MaximumStorageSize": 0,
           "MaximumPatientCount": 0,
@@ -78,7 +78,7 @@ services:
           "Authorization": {
             "WebServiceRootUrl": "https://orthanc-auth.abfnhc.com/",
             "WebServiceUsername": "share-user",
-            "WebServicePassword": "PLEASECHANGEME-1",
+            "WebServicePassword": "${ORTHANC_AUTH_SERVICE_PASSWORD}",
             // to use OHIF-plugin:  make sure to include "ohif" in the list
             "StandardConfigurations" : [
               "stone-webviewer",
@@ -100,7 +100,7 @@ services:
 
           "DicomCheckModalityHost": true,
           "DicomCheckCalledAet": true,
-          "DicomAet": "NIDUS",
+          "DicomAet": "FNHC",
           "DicomAlwaysAllowEcho": false,
           "DicomAlwaysAllowStore": false,
           "DicomAlwaysAllowFind": false,
@@ -114,13 +114,9 @@ services:
             "Port": 5432,
             "Database": "orthanc",
             "Username": "orthanc",
-            "Password": "orthanc",
+            "Password": "${ORTHANC_DB_PASSWORD}",
             "EnableSsl": false,
             "EnableIndex": true
-          },
-
-          "Dictionary" : {
-            "0011,10" : [ "LT", "MyPrivateComments", 1, 1, "MYAPP 1.0" ]
           }
         }
 
@@ -138,24 +134,48 @@ services:
       keycloak:
         condition: service_healthy
     restart: unless-stopped
+    env_file:
+      - ../.env
     environment:
       # https://github.com/orthanc-team/orthanc-auth-service/tree/main/minimal-setup/keycloak#enabling-api-keys
-      SECRET_KEY: "CHANGEME"
+      SECRET_KEY: ${ORTHANC_AUTH_SERVICE_SECRET_KEY}
       ENABLE_KEYCLOAK: "true"
       ENABLE_KEYCLOAK_API_KEYS: "true"
-      KEYCLOAK_CLIENT_SECRET: "GET_ME_FROM_KEYCLOAK_LOGS"
+      KEYCLOAK_CLIENT_SECRET: ${ORTHANC_AUTH_SERVICE_KEYCLOAK_CLIENT_SECRET}
       PUBLIC_ORTHANC_ROOT: "https://orthanc.abfnhc.com/"
       PUBLIC_LANDING_ROOT: "https://orthanc.abfnhc.com/ui/app/token-landing.html"
       USERS: |
         {
-          "share-user": "PLEASECHANGEME-1"
+          "share-user": "${ORTHANC_AUTH_SERVICE_PASSWORD}"
         }
+
+  keycloak-github-plugin-builder:
+    build:
+      context: ./keycloak-github-org-guard
+      dockerfile: Dockerfile
+    volumes:
+      - keycloak_plugins:/out
+    profiles:
+      - orthanc
+
+  keycloak-role-plugin-builder:
+    build:
+      context: ./keycloak-role-auto-assigner
+      dockerfile: Dockerfile
+    volumes:
+      - keycloak_plugins:/out
+    profiles:
+      - orthanc
 
   keycloak:
     image: orthancteam/orthanc-keycloak:25.5.0
     depends_on:
       orthanc-db:
         condition: service_healthy
+      keycloak-github-plugin-builder:
+        condition: service_completed_successfully
+      keycloak-role-plugin-builder:
+        condition: service_completed_successfully
     restart: unless-stopped
     ports:
       - "5004:8080"
@@ -163,13 +183,20 @@ services:
       minichris-local:
     profiles:
       - orthanc
+    volumes:
+      - keycloak_plugins:/opt/keycloak/providers
+    command: >
+      sh -c "/opt/keycloak/bin/kc.sh build &&
+             /opt/keycloak/bin/kc.sh start"
+    env_file:
+      - ../.env
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
-      KC_BOOTSTRAP_ADMIN_PASSWORD: "change-me"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: "postgres"
       KC_DB_URL: "jdbc:postgresql://orthanc-db:5432/keycloak"
       KC_DB_USERNAME: "orthanc"
-      KC_DB_PASSWORD: "orthanc"
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       KC_HOSTNAME: "https://keycloak.abfnhc.com/"
       KC_HEALTH_ENABLED: "true"
     healthcheck:
@@ -186,9 +213,11 @@ services:
       minichris-local:
     profiles:
       - orthanc
+    env_file:
+      - ../.env
     environment:
       POSTGRES_USER: "orthanc"
-      POSTGRES_PASSWORD: "orthanc"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_MULTIPLE_DATABASES: orthanc, keycloak
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U orthanc"]
@@ -199,8 +228,40 @@ services:
       - ./multiple-databases.sh:/docker-entrypoint-initdb.d/multiple-databases.sh
       - orthanc_pgdata:/var/lib/postgresql/data
 
+  health-service:
+    build:
+      context: ./health-service
+      dockerfile: Dockerfile
+    depends_on:
+      orthanc:
+        condition: service_started
+      orthanc-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "5006:8000"
+    networks:
+      minichris-local:
+    profiles:
+      - orthanc
+    env_file:
+      - ../.env
+    environment:
+      ORTHANC_URL: "http://orthanc:8042"
+      ORTHANC_USERNAME: "share-user"
+      ORTHANC_PASSWORD: ${ORTHANC_AUTH_SERVICE_PASSWORD}
+      AUTH_SERVICE_URL: "http://orthanc-auth-service:8000"
+      DB_HOST: "orthanc-db"
+      DB_NAME: "orthanc"
+      DB_USER: "orthanc"
+      DB_PASS: ${ORTHANC_DB_PASSWORD}
+      KEYCLOAK_URL: "http://keycloak:8080/health/live"
+
 volumes:
   orthanc_pgdata:
+  keycloak_plugins:
   orthanc_dicom_data:
     external: true
   orthanc_dicom_data_named:
