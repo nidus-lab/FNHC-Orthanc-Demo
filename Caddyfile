@@ -17,10 +17,6 @@ orthanc-auth.abfnhcsystems.ca {
 }
 
 keycloak.abfnhcsystems.ca {
-	handle_path /admin/* {
-		reverse_proxy http://localhost:5004
-	}
-
 	handle {
 		replace {
 			"</body>" "<script>(function(){const cb=function(){document.title=document.title.replace(/Orthanc/g,'NIDUS');const header=document.getElementById('kc-header-wrapper');if(header){if(header.textContent.trim()==='Orthanc'){header.textContent='NIDUS';}header.style.backgroundImage='url(\"https://avatars.githubusercontent.com/u/143404621?s=400&u=86013a864c1b65ab27076e5819a541c74ccd1ab8&v=4.png\")';header.style.backgroundSize='contain';header.style.backgroundRepeat='no-repeat';header.style.backgroundPosition='center';}};const observer=new MutationObserver(cb);observer.observe(document.body,{childList:true,subtree:true});cb();})();</script></body>"

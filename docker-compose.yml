@@ -49,7 +49,7 @@ services:
     cap_add:
       - NET_ADMIN # Required by dnsmasq container for network config
     volumes:
-      - ./configs/dnsmasq/config:/etc/dnsmasq.conf # Mount a local directory for custom configs
+      - ./configs/dnsmasq:/etc/dnsmasq.conf # Mount a local directory for custom configs
     restart: unless-stopped
     profiles:
       - essential

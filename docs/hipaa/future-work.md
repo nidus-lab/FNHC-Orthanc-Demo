@@ -20,3 +20,6 @@
 ## Process and Compliance
 - Formalize incident response, change management, access reviews
 - Business Associate Agreements for any vendor with PHI access
+
+## Rollback Process
+- Ability to automatically rollback on bad config

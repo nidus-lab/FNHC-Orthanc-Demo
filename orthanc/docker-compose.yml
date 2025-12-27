@@ -25,7 +25,7 @@ services:
       ORTHANC__DICOM_MODALITIES: |
           {
             "FNHC": {
-                "AET": "FNHC",
+                "AET": "FNHC1",
                 "Host": "10.42.42.42",
                 "Manufacturer": "Generic",
                 "Port": 4242,
@@ -196,7 +196,7 @@ services:
       KC_DB: "postgres"
       KC_DB_URL: "jdbc:postgresql://orthanc-db:5432/keycloak"
       KC_DB_USERNAME: "orthanc"
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_DB_PASSWORD: ${ORTHANC_DB_PASSWORD}
       KC_HOSTNAME: "https://keycloak.abfnhcsystems.ca/"
       KC_HEALTH_ENABLED: "true"
     healthcheck:
@@ -232,13 +232,6 @@ services:
     build:
       context: ./health-service
       dockerfile: Dockerfile
-    depends_on:
-      orthanc:
-        condition: service_started
-      orthanc-db:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
     restart: unless-stopped
     ports:
       - "5006:8000"
@@ -258,6 +251,7 @@ services:
       DB_USER: "orthanc"
       DB_PASS: ${ORTHANC_DB_PASSWORD}
       KEYCLOAK_URL: "http://keycloak:8080/health/live"
+      TEST_STUDY_UID: ""
 
 volumes:
   orthanc_pgdata:
